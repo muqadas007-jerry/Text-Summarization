@@ -1,6 +1,3 @@
-Got it! Here's your `main.md` content rewritten **without code**, as a clean step-by-step paragraph-style explanation of your text summarization project for GitHub:
-
----
 
 # 📝 Text Summarization using Extractive and Abstractive Methods
 
