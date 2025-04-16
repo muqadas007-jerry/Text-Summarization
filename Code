@@ -1,0 +1,65 @@
+!pip install spacy transformers nltk
+!python -m spacy download en_core_web_sm
+import nltk
+nltk.download('punkt')
+
+    
+
+import spacy
+from heapq import nlargest
+from transformers import pipeline
+import re
+from nltk.tokenize import sent_tokenize
+
+    
+
+def preprocess_text(text):
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+    
+
+def extractive_summary(text, num_sentences=3):
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(text)
+    sentence_scores = {}
+
+    for sent in doc.sents:
+        for word in sent:
+            if word.is_stop == False and word.is_alpha:
+                sentence_scores[sent] = sentence_scores.get(sent, 0) + 1
+
+    summary_sentences = nlargest(num_sentences, sentence_scores, key=sentence_scores.get)
+    final_summary = ' '.join([str(sent) for sent in summary_sentences])
+    return final_summary
+
+    
+
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+def abstractive_summary(text):
+    summary = summarizer(text, max_length=109, min_length=30, do_sample=False)
+    return summary[0]['summary_text']
+
+    
+
+article = """
+A major cybersecurity breach has compromised the personal data of millions of users worldwide, prompting global concern and investigations.
+The attack, traced to a sophisticated hacking group, targeted multiple financial institutions and government databases across several countries.
+Experts believe the breach exposed sensitive information including social security numbers, financial records, and login credentials.
+In response, organizations have ramped up security measures, while cybersecurity firms are collaborating to trace the origin of the attack.
+Authorities are urging affected users to change passwords, monitor accounts, and report any suspicious activity as the investigation unfolds.
+"""
+
+    
+
+cleaned_text = preprocess_text(article)
+
+# Extractive
+print("🔹 Extractive Summary:\n")
+print(extractive_summary(cleaned_text))
+
+# Abstractive
+print("\n🔹 Abstractive Summary:\n")
+print(abstractive_summary(cleaned_text))
